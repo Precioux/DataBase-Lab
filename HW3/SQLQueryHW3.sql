@@ -48,18 +48,15 @@ SET PhoneNumber = '001126'
 WHERE P_Id = 4;
 
 --c
-INSERT INTO Persons_table (LastName, FirstName, Address, City)
-VALUES ('Doe', 'Jane', 'Fifth Square 42 Plaque', 'London');
-INSERT INTO Persons_table (LastName, FirstName, Address, City)
-VALUES ('Lee', 'David', 'Main Plaque Square 1', 'Seoul');
+UPDATE Persons_table
+SET Address = CASE
+    WHEN P_Id = 1 THEN 'Tim Square Plaque 10'
+    WHEN P_Id = 2 THEN 'Borg Square Plaque 23'
+	WHEN P_Id = 3 THEN 'Stor Square Plaque 20'
+	WHEN P_Id = 4 THEN 'Ving Square Plaque 23'
+    ELSE Address -- if P_Id is not mentioned, keep the original Address
+END;
 
-SELECT LastName, FirstName, Address
-FROM Persons_table
-WHERE Address LIKE '%Square%' AND Address LIKE '%Plaque%'
-  AND CASE WHEN CHARINDEX('Square', Address) < CHARINDEX('Plaque', Address) 
-           THEN 1 
-           ELSE 0 
-      END = 1;
 
 
 --d
@@ -69,8 +66,8 @@ BEGIN TRANSACTION;
 -- Set identity insert to ON
 SET IDENTITY_INSERT Persons_table ON
 
-INSERT INTO Persons_table (P_Id, FirstName, Address, City, PhoneNumber)
-VALUES ('Tjessem', 'Jakob', 'Nissetien 67', 'Sandnes','001127');
+INSERT INTO Persons_table (P_Id, LastName,FirstName, Address, City, PhoneNumber)
+VALUES (7,'Tjessem', 'Jakob', 'Nissetien 67', 'Sandnes','001127');
 
 -- Show first three fields of table sorted by FirstName
 SELECT FirstName, LastName, Address
@@ -143,7 +140,7 @@ END
 ELSE
 BEGIN
     -- Add the new data with P_Id=8
-    INSERT INTO Persons_table (P_Id, FirstName, Address, City, PhoneNumber)
+    INSERT INTO Persons_table (P_Id, LastName,FirstName, Address, City, PhoneNumber)
     VALUES (8,'Taylor', 'Jackson', 'Nisseisten87', 'Sandnes', @newPhoneNumber);
 END
 -- Set identity insert back to OFF
