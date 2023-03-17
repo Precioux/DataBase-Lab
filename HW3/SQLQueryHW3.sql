@@ -148,3 +148,34 @@ BEGIN
 END
 -- Set identity insert back to OFF
 SET IDENTITY_INSERT Persons_table OFF
+
+
+--Question 2
+CREATE TABLE Students(
+    name varchar(255) NOT NULL,
+    student_id int NOT NULL,
+    grade int NOT NULL,
+    CONSTRAINT PK_student_grades PRIMARY KEY (student_id)
+);
+
+INSERT INTO Students (name, student_id, grade)
+VALUES ('R1', '8831047', 12);
+
+INSERT INTO Students (name, student_id, grade)
+VALUES ('R2', '8831043', 10);
+
+INSERT INTO Students (name, student_id, grade)
+VALUES ('R3', '8831031', 15);
+
+INSERT INTO Students (name, student_id, grade)
+VALUES ('R4', '8831051', 16);
+
+INSERT INTO Students (name, student_id, grade)
+VALUES ('R1', '8831012', 11);
+
+-- Update the grades and return old and new grades using OUTPUT command
+UPDATE Students
+SET grade = grade + 2
+OUTPUT inserted.name, deleted.grade AS old_grade, inserted.grade AS new_grade
+WHERE grade < 15;
+
