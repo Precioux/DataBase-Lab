@@ -47,4 +47,18 @@ UPDATE Persons_table
 SET PhoneNumber = '001126'
 WHERE P_Id = 4;
 
+--c
+INSERT INTO Persons_table (LastName, FirstName, Address, City)
+VALUES ('Doe', 'Jane', 'Fifth Square 42 Plaque', 'London');
+INSERT INTO Persons_table (LastName, FirstName, Address, City)
+VALUES ('Lee', 'David', 'Main Plaque Square 1', 'Seoul');
+
+SELECT LastName, FirstName, Address
+FROM Persons_table
+WHERE Address LIKE '%Square%' AND Address LIKE '%Plaque%'
+  AND CASE WHEN CHARINDEX('Square', Address) < CHARINDEX('Plaque', Address) 
+           THEN 1 
+           ELSE 0 
+      END = 1;
+
 
