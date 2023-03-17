@@ -62,3 +62,17 @@ WHERE Address LIKE '%Square%' AND Address LIKE '%Plaque%'
       END = 1;
 
 
+--d
+BEGIN TRANSACTION;
+
+-- Add new data to table
+INSERT INTO Persons_table (LastName, FirstName, Address, City, PhoneNumber)
+VALUES ('Tjessem', 'Jakob', 'Nissetien 67', 'Sandnes','001127');
+
+-- Show first three fields of table sorted by FirstName
+SELECT FirstName, LastName, Address
+FROM Persons_table
+ORDER BY FirstName ASC;
+
+COMMIT;
+
