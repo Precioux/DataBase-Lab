@@ -65,8 +65,11 @@ WHERE Address LIKE '%Square%' AND Address LIKE '%Plaque%'
 --d
 BEGIN TRANSACTION;
 
--- Add new data to table
-INSERT INTO Persons_table (LastName, FirstName, Address, City, PhoneNumber)
+-- Add new data to table with P_Id = 7
+-- Set identity insert to ON
+SET IDENTITY_INSERT Persons_table ON
+
+INSERT INTO Persons_table (P_Id, FirstName, Address, City, PhoneNumber)
 VALUES ('Tjessem', 'Jakob', 'Nissetien 67', 'Sandnes','001127');
 
 -- Show first three fields of table sorted by FirstName
@@ -75,6 +78,9 @@ FROM Persons_table
 ORDER BY FirstName ASC;
 
 COMMIT;
+
+-- Set identity insert back to OFF
+SET IDENTITY_INSERT Persons_table OFF
 
 --e
 BEGIN TRANSACTION;
@@ -100,3 +106,45 @@ BEGIN
 PRINT 'okay';
 SET @counter = @counter + 1;
 END;
+
+--g
+-- Set identity insert to ON
+SET IDENTITY_INSERT Persons_table ON
+
+-- Check if the new phone number is lesser than Tjessem's
+DECLARE @newPhoneNumber nvarchar(6) = '001567';
+DECLARE @tjessemPhoneNumber nvarchar(6) = (
+    SELECT PhoneNumber
+    FROM Persons_table
+    WHERE LastName = 'Tjessem'
+);
+
+IF @newPhoneNumber < @tjessemPhoneNumber
+BEGIN
+    -- Check if a data with P_Id=6 exists
+    IF EXISTS (SELECT * FROM Persons_table WHERE P_Id = 6)
+    BEGIN
+        -- Replace the data with lesser phone number than Tjessem's
+        UPDATE Persons_table
+        SET LastName = 'Taylor',
+            FirstName = 'Jackson',
+            Address = 'Nisseisten87',
+            City = 'Sandnes',
+            PhoneNumber = @newPhoneNumber
+        WHERE P_Id = 6 AND PhoneNumber < @tjessemPhoneNumber;
+    END
+    ELSE
+    BEGIN
+        -- Add the new data with P_Id=6
+        INSERT INTO Persons_table (P_Id,LastName, FirstName, Address, City, PhoneNumber)
+        VALUES (6, 'Taylor', 'Jackson', 'Nisseisten87', 'Sandnes', @newPhoneNumber);
+    END
+END
+ELSE
+BEGIN
+    -- Add the new data with P_Id=8
+    INSERT INTO Persons_table (P_Id, FirstName, Address, City, PhoneNumber)
+    VALUES (8,'Taylor', 'Jackson', 'Nisseisten87', 'Sandnes', @newPhoneNumber);
+END
+-- Set identity insert back to OFF
+SET IDENTITY_INSERT Persons_table OFF
