@@ -76,3 +76,27 @@ ORDER BY FirstName ASC;
 
 COMMIT;
 
+--e
+BEGIN TRANSACTION;
+-- Wait for 10 seconds
+WAITFOR DELAY '00:00:10';
+
+-- Select people who live in a city starting with 'S'
+SELECT FirstName, LastName, City
+FROM Persons_table
+WHERE City LIKE 'S%';
+
+COMMIT;
+
+--f
+-- Retrieve the last P_Id value and store it in the 'temp' variable
+DECLARE @temp int;
+SELECT TOP 1 @temp = P_Id FROM Persons_table ORDER BY P_Id DESC;
+
+-- Print 'okay' as last P_Id value times
+DECLARE @counter int = 1;
+WHILE @counter <= @temp
+BEGIN
+PRINT 'okay';
+SET @counter = @counter + 1;
+END;
