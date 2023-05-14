@@ -1,13 +1,11 @@
-CREATE TRIGGER dropPreventTrigger 
-ON DATABASE 
-FOR DROP_TABLE 
-AS 
+CREATE TRIGGER PreventDelete
+ON Book
+INSTEAD OF DELETE
+AS
 BEGIN
-   IF EXISTS(SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'Book') AND type = 'U')
-   BEGIN
-      PRINT 'You must disable Trigger "drop_safe" to drop table!'
-      ROLLBACK
-   END
+  RAISERROR('Deleting from Book table is not allowed', 16, 1);
 END;
 
-DROP TABLE Book;
+INSERT INTO book (Bookname, yearpublish, authorname, QTY) VALUES ('The Catcher in the Rye', 1951, 'J.D. Salinger', 10);
+
+DELETE FROM Book WHERE ID = 1;
