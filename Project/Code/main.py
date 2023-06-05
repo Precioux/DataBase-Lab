@@ -16,8 +16,6 @@ database = 'Project'
 username = 'project'
 password = '9839039'
 connection_string = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database};UID={username};PWD={password}'
-
-
 # Global variable to store the connection
 conn = None
 
@@ -54,63 +52,69 @@ def up():
 #curl -X POST "http://localhost:8000/shorten_url?url=https://aut.ac.ir/"
 @app.post("/shorten_url")
 def shorten_url(url: str):
+    print('INFO:     IN SHORTEN URL ')
     cursor = conn.cursor()
-    print('INFO:     IN SHORTEN URL')
 
     # Check if the URL already exists in the database
-    print('INFO:     CHECKING WHETHER IF URL EXISTS IN TABLE OR NOT')
     query = f"SELECT shorten_url FROM URL WHERE original_url = '{url}'"
     cursor.execute(query)
     existing_shorten_url = cursor.fetchone()
 
     if existing_shorten_url:
-        print('INFO:     FOUND IN TABLE')
         # URL already exists, return the existing shortened URL and increase the view count
         existing_shorten_url = existing_shorten_url[0]
-        print(f'INFO:     ORIGINAL URL : {url} SHORTEN URL : {existing_shorten_url}')
-        update_query = f"UPDATE URL SET views = views + 1 WHERE shorten_url = '{existing_shorten_url}'"
-        print('INFO:     VIEW UPDATED')
-        cursor.execute(update_query)
+
+        # Call the stored procedure to increase the view count
+        stored_procedure = "IncreaseViewCount"
+        cursor.execute(f"EXEC {stored_procedure} @shorten_url = '{existing_shorten_url}'")
         conn.commit()
+
         return existing_shorten_url
 
     else:
-        print('INFO:     ADDING TO TABLE')
         # Generate a random 6-character string as the shortened URL
         shorten_url = generate_shorten_url()
-        print(F'INFO:     SHORTEN URL GENERATED : {shorten_url}')
 
         # Calculate the expiration date (7 days from the current date and time)
         expire_date = calculate_expire_date()
         expire_date_str = expire_date.strftime('%Y-%m-%d %H:%M:%S')
-        print(f'INFO:     EXPIRE TIME WILL BE {expire_date_str}')
 
-        # Insert the new URL mapping into the database
-        insert_query = f"INSERT INTO URL (original_url, shorten_url, expire_date) " \
-                       f"VALUES ('{url}', '{shorten_url}', '{expire_date_str}')"
-        cursor.execute(insert_query)
+        # Call the stored procedure to insert the new URL mapping into the database
+        stored_procedure = "InsertURL"
+        cursor.execute(f"EXEC {stored_procedure} @original_url = '{url}', "
+                       f"@shorten_url = '{shorten_url}', @expire_date = '{expire_date_str}'")
+
         conn.commit()
-        print('INFO:     INSERTED TO TABLE SUCESSFULLY!')
-
         return shorten_url
 
+# API to get the original URL
+#curl -X POST "http://localhost:8000/get_original?shorten_url=m6mu3t"
+@app.post("/get_original")
+def get_original(shorten_url: str):
+    cursor = conn.cursor()
 
-# # API to get the original URL
-# @app.post("/get_original")
-# def get_original(shorten_url: str):
-#     cursor = conn.cursor()
-#
-#     # Retrieve the original URL based on the shortened URL
-#     query = f"SELECT original_url FROM URL WHERE shorten_url = '{shorten_url}'"
-#     cursor.execute(query)
-#     original_url = cursor.fetchone()
-#
-#     if original_url:
-#         return original_url[0]
-#     else:
-#         raise HTTPException(status_code=404, detail="Shortened URL not found")
-#
-#
+    # Call the T-SQL function to get the original URL based on the shortened URL
+    function_query = f"SELECT dbo.GetOriginalURL('{shorten_url}')"
+    cursor.execute(function_query)
+    original_url = cursor.fetchone()
+
+    if original_url:
+        original = original_url[0]
+        if original is None:
+            original = "*** "  # Replace 'null' with an empty string
+        # Call the stored procedure to increase the view count
+        stored_procedure = "IncreaseViewCount"
+        cursor.execute(f"EXEC {stored_procedure} @shorten_url = '{shorten_url}'")
+
+        conn.commit()
+        return original
+    else:
+        raise HTTPException(status_code=404, detail="Shortened URL not found")
+
+
+
+
+
 # # API to get statistics
 # @app.get("/get_stats")
 # def get_stats():
