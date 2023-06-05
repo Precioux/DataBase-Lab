@@ -1,0 +1,26 @@
+CREATE TRIGGER MyTrigger
+ON MyTable
+FOR INSERT
+AS
+BEGIN
+    DECLARE @EventData XML;
+    SET @EventData = EVENTDATA();
+
+    -- Accessing event information
+    DECLARE @EventType NVARCHAR(100);
+    SELECT @EventType = @EventData.value('(/EVENT_INSTANCE/EventType)[1]', 'NVARCHAR(100)');
+
+    -- Perform actions based on the event type
+    IF @EventType = 'INSERT'
+    BEGIN
+        -- Insert logic here
+    END
+    ELSE IF @EventType = 'UPDATE'
+    BEGIN
+        -- Update logic here
+    END
+    ELSE IF @EventType = 'DELETE'
+    BEGIN
+        -- Delete logic here
+    END
+END

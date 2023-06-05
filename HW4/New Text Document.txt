@@ -1,0 +1,21 @@
+In T-SQL, procedures and functions are two types of reusable code blocks with some key differences. 
+
+Procedures:
+- They do not have a return value and are used for performing actions like data manipulation.
+- Procedures cannot be directly used in queries but are executed separately using the `EXECUTE` statement or as stored procedures.
+- They can modify data in tables and databases.
+- Procedures can participate in transactions and include transaction management statements.
+- They can have input parameters, output parameters, or both.
+
+Functions:
+- They return a single value and are used for calculations or transformations.
+- Functions can be used directly in queries, referenced in `SELECT` statements, or used within expressions.
+- They are not designed to modify data and should be deterministic.
+- Functions are not meant to participate in transactions directly.
+- They can have input parameters but do not support output or input/output parameters.
+
+Overall, procedures are used for performing actions and data manipulation, while functions 
+are used for calculations and returning values. Procedures are more flexible in terms of data 
+modification and transaction handling, while functions are suitable for use within queries and expressions.
+
+SELECT DATEDIFF(year, '2017/08/25', '2011/08/25') AS DateDiff;

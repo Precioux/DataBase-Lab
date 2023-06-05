@@ -1,0 +1,21 @@
+CREATE TRIGGER BookTrigger
+ON Book
+AFTER INSERT, DELETE
+AS
+BEGIN
+    -- Insert operation
+    IF EXISTS (SELECT * FROM inserted)
+    BEGIN
+        INSERT INTO BookAudit (ins_or_del, Bookname, yearpublish, authorname, QTY)
+        SELECT 1, Bookname, yearpublish, authorname, QTY
+        FROM inserted;
+    END
+
+    -- Delete operation
+    IF EXISTS (SELECT * FROM deleted)
+    BEGIN
+        INSERT INTO BookAudit (ins_or_del, Bookname, yearpublish, authorname, QTY)
+        SELECT 0, Bookname, yearpublish, authorname, QTY
+        FROM deleted;
+    END
+END
