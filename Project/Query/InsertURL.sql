@@ -5,6 +5,6 @@ CREATE PROCEDURE InsertURL
     @expire_date DATETIME
 AS
 BEGIN
-    INSERT INTO URL (original_url, shorten_url, expire_date)
+    INSERT INTO URL_table (original_url, shorten_url, expire_date)
     VALUES (@original_url, @shorten_url, @expire_date);
 END
