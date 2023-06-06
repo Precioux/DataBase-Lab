@@ -3,6 +3,6 @@ SELECT
     original_url,
     shorten_url,
     DATEDIFF(day, GETDATE(), expire_date) AS remaining_days,
-    views
+    url_view
 FROM
-    URL
+    URL_table
