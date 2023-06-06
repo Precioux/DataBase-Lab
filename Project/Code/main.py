@@ -156,9 +156,14 @@ def dashboard():
         for mapping in mappings
     ]
 
+    # Call the SQL function to get the number of rows added today
+    query = "SELECT dbo.GetRowsAddedToday()"
+    cursor.execute(query)
+    rows_added_today = cursor.fetchone()[0]
+
     return {
         "Number of URLs added today": urls_added_today,
-        "Number of views on shorten URLs today": counter,
+        "Number of views on shorten URLs today": rows_added_today,
         "Top 3 viewed links": top_links_dict,
         "All Links": mappings_dict
     }
