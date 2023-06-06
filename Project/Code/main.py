@@ -6,6 +6,9 @@ import uvicorn
 import secrets
 import string
 from datetime import date, timedelta
+# Global variable to store the connection
+conn = None
+counter = 0
 
 # FastAPI server instance
 app = FastAPI()
@@ -58,7 +61,7 @@ def shorten_url(url: str):
         # URL already exists, retrieve the existing shortened URL
         shorten_url = existing_url[0]
         return shorten_url
-    
+
     else:
         print('INFO:     INSERTING URL TO TABLE')
         # Generate a random 6-character string as the shortened URL
@@ -80,7 +83,33 @@ def shorten_url(url: str):
         return shorten_url
 
 
-# Server startup and shutdown
+# API to get the original URL
+# curl -X POST "http://localhost:8000/get_original?shorten_url=9qdmxd"
+@app.post("/get_original")
+def get_original(shorten_url: str):
+    cursor = conn.cursor()
+    global counter
+    counter = counter + 1
+
+    # Call the T-SQL function to get the original URL based on the shortened URL
+    function_query = f"SELECT dbo.GetOriginalURL('{shorten_url}')"
+    cursor.execute(function_query)
+    original_url = cursor.fetchone()
+
+    if original_url:
+        original = original_url[0]
+        if original is None:
+            original = "*** "  # Replace 'null' with an empty string
+        # Call the stored procedure to increase the view count
+        stored_procedure = "IncreaseViewCount"
+        cursor.execute(f"EXEC {stored_procedure} @shorten_url = '{shorten_url}'")
+
+        conn.commit()
+        return original
+    else:
+        raise HTTPException(status_code=404, detail="Shortened URL not found")
+
+
 
 # Close the connection when the server stops
 @app.on_event("shutdown")

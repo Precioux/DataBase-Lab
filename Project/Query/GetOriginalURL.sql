@@ -9,7 +9,7 @@ BEGIN
 
     -- Retrieve the original URL based on the shortened URL
     SELECT @original_url = original_url
-    FROM URL
+    FROM URL_table
     WHERE shorten_url = @shorten_url;
 
     RETURN @original_url;

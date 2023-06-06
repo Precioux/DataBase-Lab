@@ -3,7 +3,7 @@ CREATE PROCEDURE IncreaseViewCount
     @shorten_url VARCHAR(30)
 AS
 BEGIN
-    UPDATE URL
-    SET views = views + 1
+    UPDATE URL_table
+    SET url_view = url_view + 1
     WHERE shorten_url = @shorten_url;
 END
