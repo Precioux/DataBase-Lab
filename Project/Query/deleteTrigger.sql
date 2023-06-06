@@ -1,9 +1,0 @@
-CREATE TRIGGER PrintDeletedURL
-ON URL
-AFTER DELETE
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    PRINT 'Expired URL deleted';
-END;

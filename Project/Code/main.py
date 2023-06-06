@@ -6,6 +6,7 @@ import uvicorn
 import secrets
 import string
 from datetime import date, timedelta
+import time
 
 # Global variable to store the connection
 conn = None
@@ -23,7 +24,7 @@ connection_string = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database};
 # Global variable to store the connection
 conn = None
 
-
+#server functions
 def calculate_expire_date():
     today = date.today()
     expire_date = today + timedelta(days=7)
@@ -46,6 +47,46 @@ def connectToDB():
         print("Connected to SQL Server")
     except pyodbc.Error as ex:
         print("Failed to connect to SQL Server:", ex)
+
+
+def delete_expired_urls():
+    cursor = conn.cursor()
+
+    try:
+        # Start an explicit transaction
+        cursor.execute("BEGIN TRANSACTION")
+
+        # Check for expired URLs
+        query = "SELECT shorten_url, submit_date, expire_date FROM URL_table"
+        cursor.execute(query)
+        urls = cursor.fetchall()
+
+        if urls:
+            current_date = time.strftime('%Y-%m-%d %H:%M:%S')
+            for url in urls:
+                shorten_url, submit_date, expire_date = url
+
+                # Calculate the difference in days between the expiration date and current date
+                date_diff_query = f"SELECT DATEDIFF(day, '{current_date}', '{expire_date}')"
+                cursor.execute(date_diff_query)
+                days_diff = cursor.fetchone()[0]
+
+                if days_diff > 7:
+                    # Delete the expired URL
+                    delete_query = f"DELETE FROM URL_table WHERE shorten_url = '{shorten_url}'"
+                    cursor.execute(delete_query)
+                    print("Expired URL deleted:", shorten_url)
+
+        # Commit the transaction
+        cursor.execute("COMMIT")
+
+    except:
+        # Rollback the transaction in case of an exception
+        cursor.execute("ROLLBACK")
+
+    finally:
+        # Reset the isolation level to the default value (READ COMMITTED)
+        cursor.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 
 @app.post("/shorten_url")
@@ -90,12 +131,10 @@ def shorten_url(url: str):
 # curl -X POST "http://localhost:8000/get_original?shorten_url=9qdmxd"
 @app.post("/get_original")
 def get_original(shorten_url: str):
-
     print('INFO:     IN GET ORIGINAL')
     cursor = conn.cursor()
 
     print('INFO:     INCREASING COUNTER')
-
 
     # Call the T-SQL function to get the original URL based on the shortened URL
     function_query = f"SELECT dbo.GetOriginalURL('{shorten_url}')"
@@ -123,8 +162,6 @@ def get_original(shorten_url: str):
 # curl -X GET http://localhost:8000/dashboard
 @app.get("/dashboard")
 def dashboard():
-
-    print(f'counter : {counter}')
     print(f'INFO:     IN DASHBOARD')
     cursor = conn.cursor()
 
@@ -168,6 +205,7 @@ def dashboard():
         "All Links": mappings_dict
     }
 
+
 # curl -X GET http://localhost:8000/drop
 @app.get("/drop")
 def drop_table():
@@ -190,7 +228,6 @@ def drop_table():
         return f"Error occurred while dropping the URL table: {str(ex)}"
 
 
-
 # Close the connection when the server stops
 @app.on_event("shutdown")
 def shutdown_event():
@@ -201,4 +238,5 @@ def shutdown_event():
 
 if __name__ == "__main__":
     connectToDB()
+    delete_expired_urls()
     uvicorn.run(app, host="0.0.0.0", port=8000)
