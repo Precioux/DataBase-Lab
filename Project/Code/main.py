@@ -168,6 +168,28 @@ def dashboard():
         "All Links": mappings_dict
     }
 
+# curl -X GET http://localhost:8000/drop
+@app.get("/drop")
+def drop_table():
+    cursor = conn.cursor()
+
+    try:
+        # Begin the transaction
+        cursor.execute("BEGIN TRANSACTION")
+
+        # Execute the DROP TABLE statement
+        cursor.execute("DROP TABLE URL_table")
+
+        # Commit the transaction
+        cursor.execute("COMMIT")
+
+        return "URL table dropped successfully"
+
+    except pyodbc.Error as ex:
+        # Handle the error or raise an exception
+        return f"Error occurred while dropping the URL table: {str(ex)}"
+
+
 
 # Close the connection when the server stops
 @app.on_event("shutdown")

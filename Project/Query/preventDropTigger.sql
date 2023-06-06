@@ -9,7 +9,7 @@ BEGIN
     DECLARE @TableName NVARCHAR(128);
     SET @TableName = EVENTDATA().value('(/EVENT_INSTANCE/ObjectName)[1]', 'NVARCHAR(128)');
 
-    IF @TableName = 'URL'
+    IF @TableName = 'URL_table'
     BEGIN
         RAISERROR('Dropping the URL table is not allowed.', 16, 1);
         ROLLBACK;
