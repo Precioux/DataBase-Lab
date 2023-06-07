@@ -24,7 +24,8 @@ connection_string = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database};
 # Global variable to store the connection
 conn = None
 
-#server functions
+
+# server functions
 def calculate_expire_date():
     today = date.today()
     expire_date = today + timedelta(days=7)
@@ -57,8 +58,7 @@ def delete_expired_urls():
         cursor.execute("BEGIN TRANSACTION")
 
         # Check for expired URLs
-        query = "SELECT shorten_url, submit_date, expire_date FROM URL_table"
-        cursor.execute(query)
+        cursor.execute("EXEC GetURLDetails")
         urls = cursor.fetchall()
 
         if urls:
@@ -73,8 +73,7 @@ def delete_expired_urls():
 
                 if days_diff > 7:
                     # Delete the expired URL
-                    delete_query = f"DELETE FROM URL_table WHERE shorten_url = '{shorten_url}'"
-                    cursor.execute(delete_query)
+                    cursor.execute("EXEC DeleteURL @shorten_url = ?", (shorten_url,))
                     print("Expired URL deleted:", shorten_url)
 
         # Commit the transaction
@@ -89,6 +88,8 @@ def delete_expired_urls():
         cursor.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
 
 
+# API to get original url and convert it
+# curl -X POST "http://localhost:8000/shorten_url?url=https://github.com/"
 @app.post("/shorten_url")
 def shorten_url(url: str):
     cursor = conn.cursor()
@@ -96,8 +97,7 @@ def shorten_url(url: str):
     print('INFO:     IN SHORTEN URL')
     print('INFO:     CHECKING WHETHER URL EXISTS IN TABLE OR NOT')
     # Check if the URL already exists in the database
-    query = f"SELECT shorten_url FROM URL_table WHERE original_url = '{url}'"
-    cursor.execute(query)
+    cursor.execute("EXEC GetShortenURLByOriginalURL @original_url=?", url)
     existing_url = cursor.fetchone()
 
     if existing_url:
@@ -172,8 +172,7 @@ def dashboard():
     print(f'INFO:     TODAY URLS {urls_added_today}')
 
     # Select the top 3 viewed ranked URLs from the view
-    query = "SELECT original_url, shorten_url, url_view FROM dbo.Top3ViewedLinks"
-    cursor.execute(query)
+    cursor.execute("EXEC GetTop3ViewedLinks")
     top_links = cursor.fetchall()
 
     # Convert top_links to a list of dictionaries
@@ -183,8 +182,7 @@ def dashboard():
     ]
 
     # Retrieve all the mappings details using the view
-    view_query = "SELECT * FROM MappingDetails"
-    cursor.execute(view_query)
+    cursor.execute("EXEC GetMappingDetails")
     mappings = cursor.fetchall()
 
     # Convert mappings to a list of dictionaries
@@ -216,7 +214,7 @@ def drop_table():
         cursor.execute("BEGIN TRANSACTION")
 
         # Execute the DROP TABLE statement
-        cursor.execute("DROP TABLE URL_table")
+        cursor.execute("EXEC DropURLTable")
 
         # Commit the transaction
         cursor.execute("COMMIT")
