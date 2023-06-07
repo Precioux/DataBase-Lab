@@ -1,5 +1,5 @@
 CREATE PROCEDURE GetShortenURLByOriginalURL
-    @original_url NVARCHAR(MAX)
+    @original_url VARCHAR(30)
 AS
 BEGIN
     SET NOCOUNT ON;

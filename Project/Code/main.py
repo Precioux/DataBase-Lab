@@ -67,8 +67,7 @@ def delete_expired_urls():
                 shorten_url, submit_date, expire_date = url
 
                 # Calculate the difference in days between the expiration date and current date
-                date_diff_query = f"SELECT DATEDIFF(day, '{current_date}', '{expire_date}')"
-                cursor.execute(date_diff_query)
+                cursor.execute("EXEC CalculateDateDifference @current_date=?, @expire_date=?", current_date, expire_date)
                 days_diff = cursor.fetchone()[0]
 
                 if days_diff > 7:
@@ -89,7 +88,7 @@ def delete_expired_urls():
 
 
 # API to get original url and convert it
-# curl -X POST "http://localhost:8000/shorten_url?url=https://github.com/"
+# curl -X POST "http://localhost:8000/shorten_url?url=https://pinterest.com"
 @app.post("/shorten_url")
 def shorten_url(url: str):
     cursor = conn.cursor()
@@ -99,7 +98,6 @@ def shorten_url(url: str):
     # Check if the URL already exists in the database
     cursor.execute("EXEC GetShortenURLByOriginalURL @original_url=?", url)
     existing_url = cursor.fetchone()
-
     if existing_url:
         print('INFO:     URL FOUND')
         # URL already exists, retrieve the existing shortened URL
